@@ -5,6 +5,7 @@ import logging
 import asyncio
 from discord.ext import commands
 import json
+import sounds
 
 # Logging/Debugging
 logger = logging.getLogger('discord')
@@ -28,9 +29,13 @@ async def on_ready():
 async def echo():
     await client.say('Echo')
 
+'''
+@client.command()
+async def join():
+	voice = sounds.JoinVoiceChannel(client)
+'''
 
-# Simple client login and starting the bot.
-
+# logs in the client and runs the bot using token read in from config.json
 with open('config.json') as config_file:
     config = json.load(config_file)
 
