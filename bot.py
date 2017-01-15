@@ -5,7 +5,8 @@ import logging
 import asyncio
 from discord.ext import commands
 import json
-import sounds
+# import sounds
+import pokemon
 
 # Logging/Debugging
 logger = logging.getLogger('discord')
@@ -27,7 +28,14 @@ async def on_ready():
 
 @client.command()
 async def echo():
-    await client.say('Echo')
+	await client.say('Echo')
+	
+@client.command()
+async def encounter():
+    p = pokemon.getRandomPokemon(-1)
+    # name = pokemon.name
+    encounter_msg = "A wild " + p + " appears."
+    await client.say(encounter_msg)
 
 '''
 @client.command()
