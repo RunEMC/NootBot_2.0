@@ -25,7 +25,7 @@ async def on_ready():
 
 @client.command()
 async def echo():
-    await bot.say('Echo')
+    await client.say('Echo')
 
 	
 # Simple client login and starting the bot.
