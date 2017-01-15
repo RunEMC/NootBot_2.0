@@ -4,6 +4,7 @@ import discord
 import logging
 import asyncio
 from discord.ext import commands
+import json
 
 # Logging/Debugging
 logger = logging.getLogger('discord')
@@ -11,7 +12,6 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
-
 
 client = commands.Bot(command_prefix="!", description="Meme Machine")
 
@@ -23,12 +23,17 @@ async def on_ready():
           "{}\n"
           "---".format(client.user.name, client.user.id))
 
+
 @client.command()
 async def echo():
     await client.say('Echo')
 
-	
+
 # Simple client login and starting the bot.
-login_token = ('MTc3MTc3ODgwNjkyOTE2MjI1.C103MA.sp3U_F2IBgtf6yKCLu2x7tWET-M')
+
+with open('config.json') as config_file:
+    config = json.load(config_file)
+
+login_token = (config["token"])
 client.login()
 client.run(login_token)
