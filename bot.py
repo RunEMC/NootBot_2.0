@@ -5,6 +5,8 @@ import logging
 import asyncio
 from discord.ext import commands
 import json
+import stockmarket
+from stockmarket import StockMarket
 # import sounds
 # import pokemon
 
@@ -18,12 +20,15 @@ logger.addHandler(handler)
 # Create new client
 client = discord.Client()
 
+# Global objest
+stockMarket = StockMarket()
 # Global flag variables
 isBotReady = False
 
 # Handle on ready events
 @client.event
 async def on_ready():
+    # Set bot's state to ready
     global isBotReady
     isBotReady = True
     print("Bot ready!")
@@ -55,6 +60,11 @@ async def on_message(message):
 
         elif command == "getid":
             await client.send_message(msgChannel, msgAuthor.id)
+
+        # Bot feature commands
+        elif command == "sm":
+            global stockMarket
+            await stockmarket.processSMCommands(stockMarket, commandArray[1:], message, client)
 
         # Default
         else:
