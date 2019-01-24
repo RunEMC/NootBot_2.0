@@ -15,38 +15,36 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-client = commands.Bot(command_prefix="!", description="Meme Machine")
-
+# Create new client
+client = discord.Client()
 
 @client.event
-async def on_ready():
-    print("Logged in as\n"
-          "{}\n"
-          "{}\n"
-          "---".format(client.user.name, client.user.id))
+async def on_message(message):
+    msgContents = message.content
+    msgChannel = message.channel
+
+    # Ensure that the message is using Pybot Commands
+    if msgContents.startswith('!'):
+        # Get command
+        commandArray = msgContents.split(" ")
+        command = commandArray[0][1:]
+
+        # ~~~~~ Process command ~~~~~ #
+        # Basic commands
+        if command == "help":
+            await client.send_message(msgChannel, "I can't help you right now.")
+
+        elif command == "die":
+            await client.send_message(msgChannel, "Ok, goodbye!")
+            await client.logout()
+
+        else:
+            await client.send_message(msgChannel, "Unrecognized command: " + msgContents)
 
 
-@client.command()
-async def echo():
-	await client.say('Echo')
-	
-@client.command()
-async def encounter():
-    p = pokemon.getRandomPokemon(-1)
-    # name = pokemon.name
-    encounter_msg = "A wild " + p + " appears."
-    await client.say(encounter_msg)
-
-'''
-@client.command()
-async def join():
-	voice = sounds.JoinVoiceChannel(client)
-'''
-
-# logs in the client and runs the bot using token read in from config.json
+# Logs in the client and runs the bot using token read in from config.json
+# Client is logged in at the end since run() is blocking
 with open('config.json') as config_file:
     config = json.load(config_file)
 
-login_token = (config["token"])
-client.login()
-client.run(login_token)
+client.run(config["token"])
