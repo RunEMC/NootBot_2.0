@@ -62,5 +62,5 @@ async def processSMCommands(stockMarket, commands, message, client):
             stockMarket.IPO(commands[1])
             # Write data to file
             with open("data/stockmarket/market.json", "w+") as outfile:
-                json.dump(stockMarket.getCompanies(), outfile)
+                json.dump(stockMarket.getCompanies(), outfile, indent=4)
             await client.send_message(msgChannel, "New stock created: " + commands[1])
