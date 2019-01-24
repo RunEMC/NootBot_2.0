@@ -1,17 +1,16 @@
+import json
 
-# Companies
-class Company():
+# Company json format
+'''
+{
+    "company_name": {
+        "name": "company_name",
+        "price": 10
+    },
+    ...
+}
 
-    def getName(self):
-        return self.name
-
-    def getPrice(self):
-        return self.price
-
-    def __init__(self, name, price):
-        self.name = name
-        self.price = price
-
+'''
 
 # Stock markeet for trades
 class StockMarket():
@@ -19,10 +18,14 @@ class StockMarket():
     def __init__(self):
         print("New stock market created")
         self.baseIPOPrice = 10
-        self.market = {}
+        with open("data/stockmarket/market.json") as infile:
+            self.market = json.load(infile)
 
     def IPO(self, companyName):
-        company = Company(companyName, 10)
+        company = {
+            "name": companyName,
+            "price": 10
+        }
         self.market[companyName] = company
 
     def getCompanies(self):
@@ -47,7 +50,7 @@ async def processSMCommands(stockMarket, commands, message, client):
         # Setup the print message
         finalMessage = "########## Companies ##########\n"
         for company in market:
-            finalMessage += market[company].getName() + ": $" + str(market[company].getPrice()) + "\n"
+            finalMessage += market[company]["name"] + ": $" + str(market[company]["price"]) + "\n"
         # Send message
         await client.send_message(msgChannel, "```" + finalMessage + "```")
 
@@ -57,4 +60,7 @@ async def processSMCommands(stockMarket, commands, message, client):
             await client.send_message(msgChannel, "Invalid arguments for stock market")
         else:
             stockMarket.IPO(commands[1])
+            # Write data to file
+            with open("data/stockmarket/market.json", "w+") as outfile:
+                json.dump(stockMarket.getCompanies(), outfile)
             await client.send_message(msgChannel, "New stock created: " + commands[1])
