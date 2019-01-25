@@ -122,31 +122,64 @@ async def processSMCommands(stockMarket, commands, message, client):
         if len(commands) <= 2:
             await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
         else:
-            companyName = commands[1]
-            amount = int(commands[2])
-            if companyName in market:
-                # Check profile and deduct funds
-                company = market[companyName]
-                profile = profiles[msgAuthor.id]
-                sharePrice = company["price"]
-                if profile["wallet"] >= amount * sharePrice:
-                    # Buy shares
-                    profile["wallet"] -= amount * sharePrice
-                    if companyName in profile["investments"]:
-                        profile["investments"][company["name"]] += amount
+            try:
+                companyName = commands[1]
+                amount = int(commands[2])
+                if companyName in market:
+                    # Check profile and deduct funds
+                    company = market[companyName]
+                    profile = profiles[msgAuthor.id]
+                    sharePrice = company["price"]
+                    if profile["wallet"] >= amount * sharePrice:
+                        # Buy shares
+                        profile["wallet"] -= amount * sharePrice
+                        if companyName in profile["investments"]:
+                            profile["investments"][companyName] += amount
+                        else:
+                            profile["investments"][companyName] = amount
+                        # Update local profile and json profile
+                        profiles[msgAuthor.id] = profile
+                        stockMarket.setProfiles(msgAuthor.id, profile)
+                        await client.send_message(msgChannel, "You have purchased " + str(amount) + " shares of " + companyName + " stocks at $" + str(sharePrice) + " per share for $" + str(amount * sharePrice) + ". (Wallet: $" + str(profile["wallet"]) + ").")
                     else:
-                        profile["investments"][company["name"]] = amount
-                    # Update local profile and json profile
-                    profiles[msgAuthor.id] = profile
-                    stockMarket.setProfiles(msgAuthor.id, profile)
+                        await client.send_message(msgChannel, "You can't afford this $" + str(amount * sharePrice) + " purchase.\nYour wallet balance is $" + str(profile["wallet"]))
                 else:
-                    await client.send_message(msgChannel, "You can't afford to this " + str(amount * sharePrice) + " purchase.\nYour wallet balance is $" + str(profile["wallet"]))
-            else:
+                    await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
+            except:
+                print("An error has occured")
                 await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
 
+    elif commands[0] == "sell":
+         # Check that there are enough args, !sm sell company amt needs 3 (less the one for !sm)
+        if len(commands) <= 2:
+            await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
+        else:
+            # Check profile and sell shares
+            try:
+                companyName = commands[1]
+                amount = int(commands[2])
+                profile = profiles[msgAuthor.id]
+                if companyName in profile["investments"]:
+                    company = market[companyName]
+                    sharePrice = company["price"]
+                    if profile["investments"][companyName] >= amount:
+                        # Sell shares
+                        profile["wallet"] += amount * sharePrice
+                        profile["investments"][companyName] -= amount
+                        # Update local profile and json profile
+                        profiles[msgAuthor.id] = profile
+                        stockMarket.setProfiles(msgAuthor.id, profile)
+                        await client.send_message(msgChannel, "You have sold " + str(amount) + " of " + companyName + "'s shares at $" + str(sharePrice) + " per share for $" + str(sharePrice * amount) + ". (Wallet: $" + str(profile["wallet"]) + ").")
+                    else:
+                        await client.send_message(msgChannel, "You don't have enough stocks to sell.\nYour currently own " + str(profile["investments"][companyName]) + " of " + companyName + "'s stocks.")
+                else:
+                    await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
+            except:
+                print("An error occurred")
+                await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
 
 # Print help message for Stock market
 async def printHelp(channel, client):
-    helpText = "This is a simulated stock market where you can buy and sell shares of companies\n" + "The share price will change every 24 hours at 12:00am EST, so make sure to trade before then\n"
+    helpText = "This is a simulated stock market where you can buy and sell shares of companies\n" + "The share prices will change every hour, so make sure to trade before then\n"
     commandsList = "\n                ########## Commands ##########\n" + "- !sm list: Lists all the companies in the stock market and their share price\n" + "- !sm ipo company_name: (Admin only) IPO a company to list on the stock market\n" + "- !sm buy company_name amount: Attempt to purchase a certain amount of shares in a company\n" + "- !sm sell company_name amount: Attempt to sell a certain amount of shares in a company\n"
     await client.send_message(channel, "```" + helpText + commandsList + "```")
