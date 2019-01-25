@@ -147,7 +147,7 @@ async def processSMCommands(stockMarket, commands, message, client):
                     await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
             except:
                 print("An error has occured")
-                await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
+                await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
 
     elif commands[0] == "sell":
          # Check that there are enough args, !sm sell company amt needs 3 (less the one for !sm)
@@ -176,7 +176,7 @@ async def processSMCommands(stockMarket, commands, message, client):
                     await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
             except:
                 print("An error occurred")
-                await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
+                await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
 
 # Print help message for Stock market
 async def printHelp(channel, client):
