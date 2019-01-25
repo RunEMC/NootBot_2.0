@@ -122,15 +122,28 @@ async def processSMCommands(stockMarket, commands, message, client):
         if len(commands) <= 2:
             await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
         else:
-            company = commands[1]
-            amount = commands[2]
-            if company in market:
+            companyName = commands[1]
+            amount = int(commands[2])
+            if companyName in market:
                 # Check profile and deduct funds
-                pass
+                company = market[companyName]
+                profile = profiles[msgAuthor.id]
+                sharePrice = company["price"]
+                if profile["wallet"] >= amount * sharePrice:
+                    # Buy shares
+                    profile["wallet"] -= amount * sharePrice
+                    if companyName in profile["investments"]:
+                        profile["investments"][company["name"]] += amount
+                    else:
+                        profile["investments"][company["name"]] = amount
+                    # Update local profile and json profile
+                    profiles[msgAuthor.id] = profile
+                    stockMarket.setProfiles(msgAuthor.id, profile)
+                else:
+                    await client.send_message(msgChannel, "You can't afford to this " + str(amount * sharePrice) + " purchase.\nYour wallet balance is $" + str(profile["wallet"]))
             else:
                 await client.send_message(msgChannel, "Invalid company, type !sm list for companies and !sm help for help.")
 
-            
 
 # Print help message for Stock market
 async def printHelp(channel, client):
