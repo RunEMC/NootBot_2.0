@@ -20,8 +20,11 @@ logger.addHandler(handler)
 # Create new client
 client = discord.Client()
 
+# Global config parameters
+
 # Global objest
 stockMarket = StockMarket()
+stockMarket.fluctuatePrices()
 # Global flag variables
 isBotReady = False
 
@@ -36,6 +39,7 @@ async def on_ready():
 # Handle on message events
 @client.event
 async def on_message(message):
+    global stockMarket
     msgContents = message.content
     msgChannel = message.channel
     msgAuthor = message.author
@@ -53,6 +57,7 @@ async def on_message(message):
 
         elif command == "die":
             if msgAuthor.id == "171429655008509954": # You can set this to your own id
+                stockMarket.shutDown()
                 await client.send_message(msgChannel, "Ok, goodbye!")
                 await client.logout()
             else:
@@ -63,7 +68,6 @@ async def on_message(message):
 
         # Bot feature commands
         elif command == "sm":
-            global stockMarket
             await stockmarket.processSMCommands(stockMarket, commandArray[1:], message, client)
 
         # Default

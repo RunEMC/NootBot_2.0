@@ -1,4 +1,6 @@
 import json
+import threading
+import random
 
 '''
 # Company json format
@@ -30,6 +32,7 @@ proFile = "profiles.json"
 # Global default variables
 startingMoney = 500
 companyStartPrice = 10
+priceFluctuationInterval = 10
 
 # Stock markeet for trades
 class StockMarket():
@@ -59,6 +62,9 @@ class StockMarket():
             self.market = json.load(infile)
         with open(dirPath + proFile) as infile:
             self.profiles = json.load(infile)
+        self.random = random
+        self.random.seed()
+        self.isShutDown = False
 
     def IPO(self, companyName):
         company = {
@@ -70,6 +76,20 @@ class StockMarket():
     def buy(self, companyName, amount, availableFunds):
         company = self.market[companyName]
         return availableFunds >= company.price * amount
+
+    def fluctuatePrices(self, interval = priceFluctuationInterval):
+        if not self.isShutDown:
+            threading.Timer(interval, self.fluctuatePrices).start()
+            for company in self.market:
+                if self.random.random() <= 0.5:
+                    self.market[company]["price"] += 1
+                else:
+                    self.market[company]["price"] -= 1
+
+    def shutDown(self):
+        self.isShutDown = True
+
+
             
 # Interacts with the stockmarket based on command
 async def processSMCommands(stockMarket, commands, message, client):
@@ -101,7 +121,7 @@ async def processSMCommands(stockMarket, commands, message, client):
 
     elif commands[0] == "list":
         # Setup the print message
-        finalMessage = "                ########## Companies ##########\n"
+        finalMessage = "########## Companies ##########\n"
         for company in market:
             finalMessage += market[company]["name"] + ": $" + str(market[company]["price"]) + "\n"
         # Send message
@@ -178,8 +198,10 @@ async def processSMCommands(stockMarket, commands, message, client):
                 print("An error occurred")
                 await client.send_message(msgChannel, "Invalid arguments for stock market, type !sm help for help.")
 
+
 # Print help message for Stock market
 async def printHelp(channel, client):
     helpText = "This is a simulated stock market where you can buy and sell shares of companies\n" + "The share prices will change every hour, so make sure to trade before then\n"
     commandsList = "\n                ########## Commands ##########\n" + "- !sm list: Lists all the companies in the stock market and their share price\n" + "- !sm ipo company_name: (Admin only) IPO a company to list on the stock market\n" + "- !sm buy company_name amount: Attempt to purchase a certain amount of shares in a company\n" + "- !sm sell company_name amount: Attempt to sell a certain amount of shares in a company\n"
     await client.send_message(channel, "```" + helpText + commandsList + "```")
+
