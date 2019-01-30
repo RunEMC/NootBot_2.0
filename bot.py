@@ -5,8 +5,10 @@ import logging
 import asyncio
 from discord.ext import commands
 import json
+import stockmarket
+from stockmarket import StockMarket
 # import sounds
-import pokemon
+# import pokemon
 
 # Logging/Debugging
 logger = logging.getLogger('discord')
@@ -18,13 +20,32 @@ logger.addHandler(handler)
 # Create new client
 client = discord.Client()
 
+# Global config parameters
+
+# Global objest
+stockMarket = StockMarket()
+stockMarket.fluctuatePrices()
+# Global flag variables
+isBotReady = False
+
+# Handle on ready events
+@client.event
+async def on_ready():
+    # Set bot's state to ready
+    global isBotReady
+    isBotReady = True
+    print("Bot ready!")
+
+# Handle on message events
 @client.event
 async def on_message(message):
+    global stockMarket
     msgContents = message.content
     msgChannel = message.channel
+    msgAuthor = message.author
 
     # Ensure that the message is using Pybot Commands
-    if msgContents.startswith('!'):
+    if msgContents.startswith('!') and isBotReady:
         # Get command
         commandArray = msgContents.split(" ")
         command = commandArray[0][1:]
@@ -35,11 +56,27 @@ async def on_message(message):
             await client.send_message(msgChannel, "I can't help you right now.")
 
         elif command == "die":
-            await client.send_message(msgChannel, "Ok, goodbye!")
-            await client.logout()
+            if msgAuthor.id == "171429655008509954": # You can set this to your own id
+                stockMarket.shutDown()
+                await client.send_message(msgChannel, "Ok, goodbye!")
+                await client.logout()
+            else:
+                await client.send_message(msgChannel, "Sorry, only RunEMC can do that!")
 
+        elif command == "getid":
+            await client.send_message(msgChannel, msgAuthor.id)
+
+        # Bot feature commands
+        elif command == "sm":
+            await stockmarket.processSMCommands(stockMarket, commandArray[1:], message, client)
+
+        # Default
         else:
+            print(msgAuthor.id)
             await client.send_message(msgChannel, "Unrecognized command: " + msgContents)
+
+    elif not isBotReady:
+        await client.send_message(msgChannel, "Sorry, I'm still starting up, please wait")
 
 
 # Logs in the client and runs the bot using token read in from config.json
